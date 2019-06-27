@@ -16,6 +16,8 @@ import org.junit.rules.ExpectedException;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
+import br.ce.wcaquino.exceptions.FilmeSemEstoqueException;
+import br.ce.wcaquino.exceptions.LocadoraException;
 import br.ce.wcaquino.utils.DataUtils;
 
 public class LocacaoServiceTest {
@@ -47,8 +49,8 @@ public class LocacaoServiceTest {
 	
 	//Forma Elegante - Espera que realmente dê uma exceção
 	//Se não der exceção, o teste falha
-	@Test(expected = Exception.class)
-	public void testeLocacao_filmeSemEstoque1() throws Exception{
+	@Test(expected = FilmeSemEstoqueException.class)
+	public void testeLocacao_filmeSemEstoque1() throws FilmeSemEstoqueException, LocadoraException{
 		
 		//cenário
 		LocacaoService service = new LocacaoService();
@@ -60,10 +62,46 @@ public class LocacaoServiceTest {
 	
 	}
 	
+	//Forma robusta
+	@Test
+	public void testLocacao_usuarioVazio() throws FilmeSemEstoqueException {
+		
+		//cenário
+		LocacaoService service = new LocacaoService();
+		Filme filme = new Filme("Filme 1", 1, 5.0);
+		
+		//ação
+		try {
+			service.alugarFilme(null, filme);
+		} catch (LocadoraException e) {
+			Assert.assertThat(e.getMessage(), is("Usuário vazio"));
+		}	
+		
+	}
+	
+	
+	//Forma Nova
+	@Test
+	public void testLocacao_filmeVazio( ) throws FilmeSemEstoqueException, LocadoraException {
+		
+		//cenário
+		LocacaoService service = new LocacaoService();
+		Usuario usuario = new Usuario("Renan");
+		
+		//Prepara as exceções esperadas
+		exception.expect(LocadoraException.class);
+		exception.expectMessage("Filme vazio");
+		
+		//ação
+		service.alugarFilme(usuario, null);
+		
+	}
+	
+	/*
 	//Forma robusta - fornece um controle maior sobre o teste
 	//Espera que lance uma exceção para o teste funcionar
 	@Test
-	public void testeLocacao_filmeSemEstoque2(){
+	public void testeLocacao_filmeSemEstoque2() throws LocadoraException{
 		
 		//cenário
 		LocacaoService service = new LocacaoService();
@@ -74,8 +112,8 @@ public class LocacaoServiceTest {
 		try {
 			service.alugarFilme(usuario, filme);
 			Assert.fail("Deveria ter lançado uma exceção.");
-		} catch (Exception e) {
-			Assert.assertThat(e.getMessage(), is("Filme sem estoque"));
+		} catch (FilmeSemEstoqueException e) {
+			
 		}		
 	
 	}
@@ -96,6 +134,6 @@ public class LocacaoServiceTest {
 		//ação
 		service.alugarFilme(usuario, filme);			
 	
-	}
+	}*/
 	
 }
