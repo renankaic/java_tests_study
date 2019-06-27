@@ -27,8 +27,7 @@ import br.ce.wcaquino.utils.DataUtils;
 public class LocacaoServiceTest {
 	
 	private LocacaoService service;
-	
-	
+		
 	@Rule
 	public ErrorCollector error = new ErrorCollector();
 	
