@@ -7,7 +7,11 @@ import static org.hamcrest.CoreMatchers.is;
 
 import java.util.Date;
 
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -22,17 +26,43 @@ import br.ce.wcaquino.utils.DataUtils;
 
 public class LocacaoServiceTest {
 	
+	private LocacaoService service;
+	
+	
 	@Rule
 	public ErrorCollector error = new ErrorCollector();
 	
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
 	
+	//Executa antes de qualquer teste
+	@Before
+	public void setup() {
+		service = new LocacaoService();
+	}
+	
+	//Executa depois de qualquer teste
+	@After
+	public void tearDown() {
+		System.out.println("After");
+	}
+	
+	//Executado antes da instanciação da classe
+	@BeforeClass
+	public static void setupClass() {
+		System.out.println("BeforeClass");
+	}
+	
+	//Executado depois de todos os testes serem finalizados
+	@AfterClass
+	public static void tearDownClass() {
+		System.out.println("AfterClass");
+	}
+	
 	@Test
 	public void testeLocacao() throws Exception {
 		
 		//cenário
-		LocacaoService service = new LocacaoService();
 		Usuario usuario = new Usuario("Renan");
 		Filme filme = new Filme("Filme 1", 2, 5.0);
 		
@@ -53,7 +83,6 @@ public class LocacaoServiceTest {
 	public void testeLocacao_filmeSemEstoque1() throws FilmeSemEstoqueException, LocadoraException{
 		
 		//cenário
-		LocacaoService service = new LocacaoService();
 		Usuario usuario = new Usuario("Renan");
 		Filme filme = new Filme("Filme 1", 0, 5.0);
 		
@@ -67,7 +96,6 @@ public class LocacaoServiceTest {
 	public void testLocacao_usuarioVazio() throws FilmeSemEstoqueException {
 		
 		//cenário
-		LocacaoService service = new LocacaoService();
 		Filme filme = new Filme("Filme 1", 1, 5.0);
 		
 		//ação
@@ -85,7 +113,6 @@ public class LocacaoServiceTest {
 	public void testLocacao_filmeVazio( ) throws FilmeSemEstoqueException, LocadoraException {
 		
 		//cenário
-		LocacaoService service = new LocacaoService();
 		Usuario usuario = new Usuario("Renan");
 		
 		//Prepara as exceções esperadas
