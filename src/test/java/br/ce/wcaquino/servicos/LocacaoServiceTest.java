@@ -29,6 +29,8 @@ import br.ce.wcaquino.entidades.Usuario;
 import br.ce.wcaquino.exceptions.FilmeSemEstoqueException;
 import br.ce.wcaquino.exceptions.LocadoraException;
 import br.ce.wcaquino.utils.DataUtils;
+import builders.FilmeBuilder;
+import builders.UsuarioBuilder;
 
 public class LocacaoServiceTest {
 	
@@ -70,8 +72,8 @@ public class LocacaoServiceTest {
 		Assume.assumeFalse(DataUtils.verificarDiaSemana(new Date(), Calendar.SATURDAY));
 		
 		//cenário
-		Usuario usuario = new Usuario("Renan");
-		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 2, 5.0));
+		Usuario usuario = UsuarioBuilder.umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(FilmeBuilder.umFilme().comValor(5.0).agora());
 		
 		//ação
 		Locacao locacao;
@@ -92,8 +94,8 @@ public class LocacaoServiceTest {
 	public void naoDeveAlugarFilmeSemEstoque() throws FilmeSemEstoqueException, LocadoraException{
 		
 		//cenário
-		Usuario usuario = new Usuario("Renan");
-		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 0, 5.0));
+		Usuario usuario = UsuarioBuilder.umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(FilmeBuilder.umFilmeSemEstoque().agora());
 				
 		//ação
 		service.alugarFilmes(usuario, filmes);		
@@ -105,7 +107,7 @@ public class LocacaoServiceTest {
 	public void naoDeveAlugarFilmeSemUsuario() throws FilmeSemEstoqueException {
 		
 		//cenário
-		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 1, 5.0));
+		List<Filme> filmes = Arrays.asList(FilmeBuilder.umFilme().agora());
 		
 		//ação
 		try {
@@ -121,7 +123,7 @@ public class LocacaoServiceTest {
 	public void naoDeveAlugarFilmeSemFilme( ) throws FilmeSemEstoqueException, LocadoraException {
 		
 		//cenário
-		Usuario usuario = new Usuario("Renan");
+		Usuario usuario = UsuarioBuilder.umUsuario().agora();
 		
 		//Prepara as exceções esperadas
 		exception.expect(LocadoraException.class);
@@ -138,8 +140,8 @@ public class LocacaoServiceTest {
 		Assume.assumeTrue(DataUtils.verificarDiaSemana(new Date(), Calendar.SATURDAY));
 		
 		//cenário
-		Usuario usuario = new Usuario("Usuario 1");
-		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 1, 5.0));
+		Usuario usuario = UsuarioBuilder.umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(FilmeBuilder.umFilme().agora());
 		
 		//ação
 		Locacao retornoLocacao = service.alugarFilmes(usuario, filmes);
