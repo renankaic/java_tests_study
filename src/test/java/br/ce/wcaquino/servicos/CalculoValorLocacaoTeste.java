@@ -3,6 +3,7 @@ package br.ce.wcaquino.servicos;
 import static org.hamcrest.CoreMatchers.is;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
@@ -19,6 +20,7 @@ import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
 import br.ce.wcaquino.exceptions.FilmeSemEstoqueException;
 import br.ce.wcaquino.exceptions.LocadoraException;
+import br.ce.wcaquino.matchers.DiaSemanaMatcher;
 
 @RunWith(Parameterized.class)
 public class CalculoValorLocacaoTeste {
@@ -73,6 +75,7 @@ public class CalculoValorLocacaoTeste {
 		
 		//verificação
 		Assert.assertThat(resultadoLocacao.getValor(), is(valorLocacao));		
+		Assert.assertThat(resultadoLocacao.getDataRetorno(), new DiaSemanaMatcher(Calendar.MONDAY));
 		
 	}
 	
