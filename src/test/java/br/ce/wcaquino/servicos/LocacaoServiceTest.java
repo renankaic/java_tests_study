@@ -29,6 +29,7 @@ import br.ce.wcaquino.entidades.Usuario;
 import br.ce.wcaquino.exceptions.FilmeSemEstoqueException;
 import br.ce.wcaquino.exceptions.LocadoraException;
 import br.ce.wcaquino.utils.DataUtils;
+import buildermaster.BuilderMaster;
 import builders.FilmeBuilder;
 import builders.UsuarioBuilder;
 
@@ -153,6 +154,10 @@ public class LocacaoServiceTest {
 //		Assert.assertThat(retornoLocacao.getDataRetorno(), new DiaSemanaMatcher(Calendar.MONDAY));
 //		Assert.assertThat(retornoLocacao.getDataRetorno(), caiEm(Calendar.MONDAY));
 		Assert.assertThat(retornoLocacao.getDataRetorno(), caiNumaSegunda());
+	}
+	
+	public static void main(String[] args) {
+		new BuilderMaster().gerarCodigoClasse(Locacao.class);
 	}
 	
 	/*
