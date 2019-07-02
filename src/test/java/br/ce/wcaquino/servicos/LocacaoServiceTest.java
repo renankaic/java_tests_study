@@ -1,28 +1,32 @@
 package br.ce.wcaquino.servicos;
 
 
+
+import static br.ce.wcaquino.builders.FilmeBuilder.umFilme;
+import static br.ce.wcaquino.builders.FilmeBuilder.umFilmeSemEstoque;
+import static br.ce.wcaquino.builders.UsuarioBuilder.umUsuario;
 import static br.ce.wcaquino.matchers.MatchersProprios.caiNumaSegunda;
-import static br.ce.wcaquino.matchers.MatchersProprios.ehAmanha;
 import static br.ce.wcaquino.matchers.MatchersProprios.ehHoje;
+import static br.ce.wcaquino.matchers.MatchersProprios.ehHojeComDiferencaDias;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
 
+import br.ce.wcaquino.daos.LocacaoDAO;
+import br.ce.wcaquino.daos.LocacaoDAOFake;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
@@ -30,173 +34,94 @@ import br.ce.wcaquino.exceptions.FilmeSemEstoqueException;
 import br.ce.wcaquino.exceptions.LocadoraException;
 import br.ce.wcaquino.utils.DataUtils;
 import buildermaster.BuilderMaster;
-import builders.FilmeBuilder;
-import builders.UsuarioBuilder;
 
 public class LocacaoServiceTest {
-	
+
 	private LocacaoService service;
-		
+	
 	@Rule
 	public ErrorCollector error = new ErrorCollector();
 	
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
 	
-	//Executa antes de qualquer teste
 	@Before
-	public void setup() {
+	public void setup(){
 		service = new LocacaoService();
-	}
-	
-	//Executa depois de qualquer teste
-	@After
-	public void tearDown() {
-		System.out.println("After");
-	}
-	
-	//Executado antes da instanciação da classe
-	@BeforeClass
-	public static void setupClass() {
-		System.out.println("BeforeClass");
-	}
-	
-	//Executado depois de todos os testes serem finalizados
-	@AfterClass
-	public static void tearDownClass() {
-		System.out.println("AfterClass");
+		LocacaoDAO dao = new LocacaoDAOFake();
+		service.setLocacaoDAO(dao);
 	}
 	
 	@Test
 	public void deveAlugarFilme() throws Exception {
-		
 		Assume.assumeFalse(DataUtils.verificarDiaSemana(new Date(), Calendar.SATURDAY));
 		
-		//cenário
-		Usuario usuario = UsuarioBuilder.umUsuario().agora();
-		List<Filme> filmes = Arrays.asList(FilmeBuilder.umFilme().comValor(5.0).agora());
+		//cenario
+		Usuario usuario = umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(umFilme().comValor(5.0).agora());
 		
-		//ação
-		Locacao locacao;
-		locacao = service.alugarFilmes(usuario, filmes);
+		//acao
+		Locacao locacao = service.alugarFilme(usuario, filmes);
 			
-		//verificação
+		//verificacao
 		error.checkThat(locacao.getValor(), is(equalTo(5.0)));
 		error.checkThat(locacao.getDataLocacao(), ehHoje());
-		error.checkThat(locacao.getDataRetorno(), ehAmanha());
-		//error.checkThat(isMesmaData(locacao.getDataLocacao(), new Date()), is(true));
-		//error.checkThat(isMesmaData(locacao.getDataRetorno(), DataUtils.obterDataComDiferencaDias(1)), is(true));
-			
+		error.checkThat(locacao.getDataRetorno(), ehHojeComDiferencaDias(1));
 	}
 	
-	//Forma Elegante - Espera que realmente dê uma exceção
-	//Se não der exceção, o teste falha
 	@Test(expected = FilmeSemEstoqueException.class)
-	public void naoDeveAlugarFilmeSemEstoque() throws FilmeSemEstoqueException, LocadoraException{
+	public void naoDeveAlugarFilmeSemEstoque() throws Exception{
+		//cenario
+		Usuario usuario = umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(umFilmeSemEstoque().agora());
 		
-		//cenário
-		Usuario usuario = UsuarioBuilder.umUsuario().agora();
-		List<Filme> filmes = Arrays.asList(FilmeBuilder.umFilmeSemEstoque().agora());
-				
-		//ação
-		service.alugarFilmes(usuario, filmes);		
-	
+		//acao
+		service.alugarFilme(usuario, filmes);
 	}
 	
-	//Forma robusta
 	@Test
-	public void naoDeveAlugarFilmeSemUsuario() throws FilmeSemEstoqueException {
+	public void naoDeveAlugarFilmeSemUsuario() throws FilmeSemEstoqueException{
+		//cenario
+		List<Filme> filmes = Arrays.asList(umFilme().agora());
 		
-		//cenário
-		List<Filme> filmes = Arrays.asList(FilmeBuilder.umFilme().agora());
-		
-		//ação
+		//acao
 		try {
-			service.alugarFilmes(null, filmes);
+			service.alugarFilme(null, filmes);
+			Assert.fail();
 		} catch (LocadoraException e) {
-			Assert.assertThat(e.getMessage(), is("Usuário vazio"));
-		}	
-		
-	}	
-	
-	//Forma Nova
+			assertThat(e.getMessage(), is("Usuario vazio"));
+		}
+	}
+
 	@Test
-	public void naoDeveAlugarFilmeSemFilme( ) throws FilmeSemEstoqueException, LocadoraException {
+	public void naoDeveAlugarFilmeSemFilme() throws FilmeSemEstoqueException, LocadoraException{
+		//cenario
+		Usuario usuario = umUsuario().agora();
 		
-		//cenário
-		Usuario usuario = UsuarioBuilder.umUsuario().agora();
-		
-		//Prepara as exceções esperadas
 		exception.expect(LocadoraException.class);
 		exception.expectMessage("Filme vazio");
 		
-		//ação
-		service.alugarFilmes(usuario, null);
-		
+		//acao
+		service.alugarFilme(usuario, null);
 	}
 	
 	@Test
-	public void deveDevolverNaSegundaAoAlugarNoSabado() throws FilmeSemEstoqueException, LocadoraException {
-		
+	public void deveDevolverNaSegundaAoAlugarNoSabado() throws FilmeSemEstoqueException, LocadoraException{
 		Assume.assumeTrue(DataUtils.verificarDiaSemana(new Date(), Calendar.SATURDAY));
 		
-		//cenário
-		Usuario usuario = UsuarioBuilder.umUsuario().agora();
-		List<Filme> filmes = Arrays.asList(FilmeBuilder.umFilme().agora());
+		//cenario
+		Usuario usuario = umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(umFilme().agora());
 		
-		//ação
-		Locacao retornoLocacao = service.alugarFilmes(usuario, filmes);
+		//acao
+		Locacao retorno = service.alugarFilme(usuario, filmes);
 		
-//		//verificação
-//		boolean ehSegunda = DataUtils.verificarDiaSemana(retornoLocacao.getDataRetorno(), Calendar.MONDAY);
-//		Assert.assertTrue(ehSegunda);		
-
-//		Assert.assertThat(retornoLocacao.getDataRetorno(), new DiaSemanaMatcher(Calendar.MONDAY));
-//		Assert.assertThat(retornoLocacao.getDataRetorno(), caiEm(Calendar.MONDAY));
-		Assert.assertThat(retornoLocacao.getDataRetorno(), caiNumaSegunda());
+		//verificacao
+		assertThat(retorno.getDataRetorno(), caiNumaSegunda());
+		
 	}
 	
 	public static void main(String[] args) {
 		new BuilderMaster().gerarCodigoClasse(Locacao.class);
 	}
-	
-	/*
-	//Forma robusta - fornece um controle maior sobre o teste
-	//Espera que lance uma exceção para o teste funcionar
-	@Test
-	public void testeLocacao_filmeSemEstoque2() throws LocadoraException{
-		
-		//cenário
-		LocacaoService service = new LocacaoService();
-		Usuario usuario = new Usuario("Renan");
-		Filme filme = new Filme("Filme 1", 0, 5.0);
-		
-		//ação
-		try {
-			service.alugarFilme(usuario, filme);
-			Assert.fail("Deveria ter lançado uma exceção.");
-		} catch (FilmeSemEstoqueException e) {
-			
-		}		
-	
-	}
-	
-	//Forma nova 
-	@Test
-	public void testeLocacao_filmeSemEstoque3() throws Exception{
-		
-		//cenário
-		LocacaoService service = new LocacaoService();
-		Usuario usuario = new Usuario("Renan");
-		Filme filme = new Filme("Filme 1", 0, 5.0);
-		
-		//espera pela exceção
-		exception.expect(Exception.class);
-		exception.expectMessage("Filme sem estoque");
-		
-		//ação
-		service.alugarFilme(usuario, filme);			
-	
-	}*/
-	
 }

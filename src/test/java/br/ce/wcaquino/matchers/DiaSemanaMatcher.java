@@ -20,8 +20,8 @@ public class DiaSemanaMatcher extends TypeSafeMatcher<Date> {
 	public void describeTo(Description desc) {
 		Calendar data = Calendar.getInstance();
 		data.set(Calendar.DAY_OF_WEEK, diaSemana);
-		String dataExtensa = data.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, new Locale("pt", "BR"));
-		desc.appendText(dataExtensa);
+		String dataExtenso = data.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, new Locale("pt", "BR"));
+		desc.appendText(dataExtenso);
 	}
 
 	@Override
