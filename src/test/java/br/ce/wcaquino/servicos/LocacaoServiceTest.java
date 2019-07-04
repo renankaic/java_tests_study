@@ -26,6 +26,7 @@ import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
+import br.ce.wcaquino.builders.LocacaoBuilder;
 import br.ce.wcaquino.daos.LocacaoDAO;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
@@ -39,6 +40,7 @@ public class LocacaoServiceTest {
 	private LocacaoService service;
 	private SPCService spc;
 	private LocacaoDAO dao;
+	private EmailService email;
 	
 	@Rule
 	public ErrorCollector error = new ErrorCollector();
@@ -53,6 +55,8 @@ public class LocacaoServiceTest {
 		service.setLocacaoDAO(dao);
 		spc = Mockito.mock(SPCService.class);
 		service.setSPCService(spc);
+		email = Mockito.mock(EmailService.class);
+		service.setEmailService(email);
 	}
 	
 	@Test
@@ -110,6 +114,9 @@ public class LocacaoServiceTest {
 	
 	@Test
 	public void deveDevolverNaSegundaAoAlugarNoSabado() throws FilmeSemEstoqueException, LocadoraException{
+		
+		//Assume que o dia de hoje seja sábado
+		//Se falso, pula o teste
 		Assume.assumeTrue(DataUtils.verificarDiaSemana(new Date(), Calendar.SATURDAY));
 		
 		//cenario
@@ -125,7 +132,7 @@ public class LocacaoServiceTest {
 	}
 	
 	@Test
-	public void naoDeveAlugarFilmeParaNegativadoSPC() throws FilmeSemEstoqueException, LocadoraException {
+	public void naoDeveAlugarFilmeParaNegativadoSPC() throws FilmeSemEstoqueException  {
 		
 		//cenário
 		Usuario usuario = umUsuario().agora();
@@ -136,11 +143,58 @@ public class LocacaoServiceTest {
 		////Ele deve retornar true
 		Mockito.when(spc.possuiNegativacao(usuario)).thenReturn(true);
 		
-		exception.expect(LocadoraException.class);
-		exception.expectMessage("Usuário negativado");
+		//exception.expect(LocadoraException.class);
+		//exception.expectMessage("Usuário negativado");
 		
 		//ação
-		service.alugarFilme(usuario, filmes);
+		try {
+			service.alugarFilme(usuario, filmes);
+			
+			//Caso a exceção não seja lançada, lançará um erro
+			//Verificação 1
+			Assert.fail();
+		} catch (LocadoraException e) {
+			Assert.assertThat(e.getMessage(), is("Usuário negativado"));
+		}
+		
+		//Verificação 2
+		Mockito.verify(spc).possuiNegativacao(usuario);
+		
+	}
+	
+	@Test
+	public void deveEnviarEmailParaLocacoesAtrasadas() {
+		
+		//cenário
+		Usuario usuario = umUsuario().agora();
+		
+		////Cenário para dar erro
+		//Usuario usuario2 = umUsuario().comNome("João").agora();		
+		
+		List<Locacao> locacoes = Arrays.asList(
+				LocacaoBuilder.umLocacao()
+					.comUsuario(usuario)
+					.comDataLocacao(DataUtils.obterDataComDiferencaDias(-2))
+					.agora());
+		
+		//Quando o método obterLocacoesPendentes() for chamado
+		//irá retornar a lista criada acima com uma locação que deveria
+		//ter sido entregue em um dia passado
+		Mockito.when(dao.obterLocacoesPendentes()).thenReturn(locacoes);
+		
+		//ação
+		service.notificarAtrasos();
+		
+		//verificacação
+		//Verifica se o método notificarAtraso foi chamado para o usuário
+		//da locação
+		
+		////Cenário para dar erro
+		//Mockito.verify(email).notificarAtraso(usuario2);
+		
+		////Cenário para dar certo
+		Mockito.verify(email).notificarAtraso(usuario);
+		
 		
 	}
 	
