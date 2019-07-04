@@ -168,14 +168,15 @@ public class LocacaoServiceTest {
 		//cenário
 		Usuario usuario = umUsuario().agora();
 		
-		////Cenário para dar erro
-		//Usuario usuario2 = umUsuario().comNome("João").agora();		
+		////Cenário para dar erro 1
+		//Usuario usuario2 = umUsuario().comNome("João").agora();
+		
+		////Cenário para dar erro 2
+		Usuario usuario2 = umUsuario().comNome("José").agora();
 		
 		List<Locacao> locacoes = Arrays.asList(
-				LocacaoBuilder.umLocacao()
-					.comUsuario(usuario)
-					.comDataLocacao(DataUtils.obterDataComDiferencaDias(-2))
-					.agora());
+				LocacaoBuilder.umaLocacao().comUsuario(usuario).atrasada().agora(),
+				LocacaoBuilder.umaLocacao().comUsuario(usuario2).agora());
 		
 		//Quando o método obterLocacoesPendentes() for chamado
 		//irá retornar a lista criada acima com uma locação que deveria
@@ -189,7 +190,10 @@ public class LocacaoServiceTest {
 		//Verifica se o método notificarAtraso foi chamado para o usuário
 		//da locação
 		
-		////Cenário para dar erro
+		////Cenário para dar erro 1
+		//Mockito.verify(email).notificarAtraso(usuario2);
+
+		////Cenário para dar erro 2
 		//Mockito.verify(email).notificarAtraso(usuario2);
 		
 		////Cenário para dar certo
